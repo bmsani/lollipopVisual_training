@@ -34,9 +34,11 @@ import { transformData } from "./transformData";
 import VisualConstructorOptions = powerbi.extensibility.visual.VisualConstructorOptions;
 import VisualUpdateOptions = powerbi.extensibility.visual.VisualUpdateOptions;
 import IVisual = powerbi.extensibility.visual.IVisual;
+import IVisualHost = powerbi.extensibility.visual.IVisualHost;
 import { Selection, select } from "d3-selection";
 import { ScalePoint, scalePoint, ScaleLinear, scaleLinear } from "d3-scale";
 import { VisualFormattingSettingsModel } from "./settings";
+import { setStyle } from "./setStyle";
 import { valueFormatter, textMeasurementService } from "powerbi-visuals-utils-formattingutils";
 import measureSvgTextWidth = textMeasurementService.measureSvgTextWidth;
 
@@ -49,10 +51,12 @@ export class Visual implements IVisual {
   private scaleX: ScalePoint<string>;
   private dim: [number, number];
   private scaleY: ScaleLinear<number, number>;
+  private host: IVisualHost;
 
   constructor(options: VisualConstructorOptions) {
     this.formattingSettingsService = new FormattingSettingsService();
     this.target = options.element;
+    this.host = options.host;
     if (document) {
       this.svg = select(this.target).append("svg");
     }
@@ -60,12 +64,10 @@ export class Visual implements IVisual {
 
   public update(options: VisualUpdateOptions) {
     this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(VisualFormattingSettingsModel, options.dataViews);
-    const settings = this.formattingSettings.dataPointCard;
-    console.log(settings.circleWidth.value);
-    // this.data = sampleData;
-    this.data = transformData(options);
-    // console.log(this.data);
-    console.log(this.data);
+    setStyle(this.formattingSettings);
+    console.log(options);
+    this.data = transformData(options, this.formattingSettings.dataPointCard.defaultColor.value.value);
+    this.formattingSettings.populateColorSelector(this.data.items);
 
     const width = options.viewport.width;
     const height = options.viewport.height;
@@ -86,9 +88,9 @@ export class Visual implements IVisual {
       .range([this.dim[1] - 10, 0 + 10]); // 10 is radius value
 
     this.drawTarget();
-    this.drawTargetLabel(settings);
+    this.drawTargetLabel();
     this.drawConnectors();
-    this.drawDataPoints(settings.circleWidth.value);
+    this.drawDataPoints();
     this.drawCategoryLabels();
   }
 
@@ -109,8 +111,7 @@ export class Visual implements IVisual {
     targetLine.exit().remove();
   }
 
-  private drawTargetLabel(fontSize) {
-    console.log(fontSize);
+  private drawTargetLabel() {
     let targetLabel = this.svg.selectAll("text.target-label").data([this.data.target]);
     targetLabel
       .enter()
@@ -118,7 +119,7 @@ export class Visual implements IVisual {
       .classed("target-label", true)
       .attr("x", this.scaleX.range()[1] + 12 / 2) // 12 is fontsize
       .attr("y", this.scaleY(this.data.target))
-      .attr("font-size", `${fontSize}px`)
+      .attr("font-size", `${12}px`)
       .attr("font-family", "sans-serif")
       .text(this.formatMeasure(this.data.target, this.data.formatString));
 
@@ -130,22 +131,41 @@ export class Visual implements IVisual {
       .text(this.formatMeasure(this.data.target, this.data.formatString));
   }
 
-  private drawDataPoints(radiusWidth) {
+  private drawDataPoints() {
     const dataPoints = this.svg.selectAll("circle.data-point").data(this.data.items);
     dataPoints
       .enter()
       .append("circle")
       .classed("data-point", true)
       .attr("cx", (d) => {
+        console.log(d.color);
         return this.scaleX(d.category);
       })
       .attr("cy", (d) => this.scaleY(d.value))
-      .attr("r", 10);
+      .attr("r", 10)
+      .style("fill", (d) => d.color)
+      .on("mouseover.tooltip", (e) => {
+        console.log(event); // Log the D3 event object
+        const d = <{ category: string; value: number }>select(e.target).data()[0];
+
+        this.host.tooltipService.show({
+          coordinates: [e.clientX, e.clientY],
+          identities: [],
+          isTouchEvent: false,
+          dataItems: [
+            {
+              displayName: d.category,
+              value: this.formatMeasure(d.value, this.data.formatString),
+            },
+          ],
+        });
+      });
 
     dataPoints
       .attr("cx", (d) => this.scaleX(d.category))
       .attr("cy", (d) => this.scaleY(d.value))
-      .attr("r", radiusWidth);
+      .attr("r", 10)
+      .style("fill", (d) => d.color);
 
     dataPoints.exit().remove();
   }

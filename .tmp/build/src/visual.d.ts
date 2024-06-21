@@ -12,6 +12,7 @@ export declare class Visual implements IVisual {
     private scaleX;
     private dim;
     private scaleY;
+    private host;
     constructor(options: VisualConstructorOptions);
     update(options: VisualUpdateOptions): void;
     private drawTarget;

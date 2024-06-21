@@ -28,6 +28,15 @@
             }
           }
         },
+        "dataPointColor": {
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
         "fontSize": {
           "type": {
             "formatting": {
@@ -78,5 +87,12 @@
       ]
     }
   ],
-  "privileges": []
+  "privileges": [],
+  "tooltips": {
+    "supportedTypes": {
+      "default": true,
+      "canvas": true
+    },
+    "roles": ["tooltips"]
+  }
 }

@@ -8,4 +8,5 @@ export interface VData {
 export interface VDataTtem {
     category: string;
     value: number;
+    color: string;
 }

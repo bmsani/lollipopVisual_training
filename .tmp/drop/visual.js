@@ -36452,6 +36452,21 @@ function matchesExtendedTypeWithAnyPrimitive(a, b) {
 
 /***/ }),
 
+/***/ 6911:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   A: () => (/* binding */ setStyle)
+/* harmony export */ });
+function setStyle(settings) {
+    const style = document.documentElement.style;
+    style.setProperty("--default-color", `${settings.dataPointCard.defaultColor.value.value}`);
+    style.setProperty("--font-size", `${settings.dataPointCard.fontSize.value}px`);
+}
+
+
+/***/ }),
+
 /***/ 3538:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
@@ -36459,6 +36474,7 @@ function matchesExtendedTypeWithAnyPrimitive(a, b) {
 /* harmony export */   E: () => (/* binding */ VisualFormattingSettingsModel)
 /* harmony export */ });
 /* harmony import */ var powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(6084);
+/* harmony import */ var powerbi_visuals_utils_dataviewutils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(2581);
 /*
  *  Power BI Visualizations
  *
@@ -36488,6 +36504,7 @@ function matchesExtendedTypeWithAnyPrimitive(a, b) {
 
 var FormattingSettingsCard = powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .Card */ .Zb;
 var FormattingSettingsModel = powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .Model */ .Hn;
+
 /**
  * Data Point Formatting Card
  */
@@ -36525,20 +36542,32 @@ class VisualFormattingSettingsModel extends FormattingSettingsModel {
         this.dataPointCard = new DataPointCardSettings();
         this.cards = [this.dataPointCard];
     }
+    populateColorSelector(dataPoints) {
+        let slices = this.dataPointCard.slices;
+        if (dataPoints) {
+            slices.push(new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_0__/* .ColorPicker */ .zH({
+                name: "dataPointColor",
+                displayName: "Datapoint color",
+                value: { value: `${dataPoints.forEach((data) => data.color)}` },
+                selector: powerbi_visuals_utils_dataviewutils__WEBPACK_IMPORTED_MODULE_1__.createDataViewWildcardSelector(0 /* dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals */),
+                // altConstantSelector: selection.getSelector(),
+                instanceKind: 3 /* powerbi.VisualEnumerationInstanceKinds.ConstantOrRule */,
+            }));
+        }
+    }
 }
 
 
 /***/ }),
 
-/***/ 87:
+/***/ 5087:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   J: () => (/* binding */ transformData)
 /* harmony export */ });
 
-function transformData(options) {
-    console.log(options.dataViews);
+function transformData(options, defaultColor) {
     let data;
     try {
         const dv = options.dataViews[0].categorical;
@@ -36546,10 +36575,19 @@ function transformData(options) {
         const maxValue = Math.max(dv.values[0].maxLocal, dv.values[1].maxLocal);
         const target = dv.values[1].values[0];
         const items = [];
+        let color;
         dv.categories[0].values.forEach((value, index) => {
+            try {
+                color = dv.categories[0].objects[index].dataPoint.dataPointColor["solid"].color;
+                console.log(color);
+            }
+            catch (error) {
+                color = defaultColor;
+            }
             items.push({
                 category: dv.categories[0].values[index],
                 value: dv.values[0].values[index],
+                color,
             });
         });
         data = {
@@ -36559,7 +36597,6 @@ function transformData(options) {
             target,
             formatString: dv.values[0].source.format || "",
         };
-        console.log(data);
     }
     catch (error) {
         data = {
@@ -36583,10 +36620,11 @@ function transformData(options) {
 /* harmony export */   u: () => (/* binding */ Visual)
 /* harmony export */ });
 /* harmony import */ var powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(4261);
-/* harmony import */ var _transformData__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(87);
+/* harmony import */ var _transformData__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(5087);
 /* harmony import */ var d3_selection__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(4017);
 /* harmony import */ var d3_scale__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(5315);
 /* harmony import */ var _settings__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(3538);
+/* harmony import */ var _setStyle__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(6911);
 /* harmony import */ var powerbi_visuals_utils_formattingutils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(4776);
 /*
  *  Power BI Visual CLI
@@ -36621,23 +36659,23 @@ function transformData(options) {
 
 
 
+
 var measureSvgTextWidth = powerbi_visuals_utils_formattingutils__WEBPACK_IMPORTED_MODULE_2__/* .textMeasurementService */ .yF.measureSvgTextWidth;
 class Visual {
     constructor(options) {
         this.formattingSettingsService = new powerbi_visuals_utils_formattingmodel__WEBPACK_IMPORTED_MODULE_3__/* ["default"] */ .Z();
         this.target = options.element;
+        this.host = options.host;
         if (document) {
             this.svg = (0,d3_selection__WEBPACK_IMPORTED_MODULE_4__/* ["default"] */ .Z)(this.target).append("svg");
         }
     }
     update(options) {
         this.formattingSettings = this.formattingSettingsService.populateFormattingSettingsModel(_settings__WEBPACK_IMPORTED_MODULE_1__/* .VisualFormattingSettingsModel */ .E, options.dataViews);
-        const settings = this.formattingSettings.dataPointCard;
-        console.log(settings.circleWidth.value);
-        // this.data = sampleData;
-        this.data = (0,_transformData__WEBPACK_IMPORTED_MODULE_5__/* .transformData */ .J)(options);
-        // console.log(this.data);
-        console.log(this.data);
+        (0,_setStyle__WEBPACK_IMPORTED_MODULE_5__/* .setStyle */ .A)(this.formattingSettings);
+        console.log(options);
+        this.data = (0,_transformData__WEBPACK_IMPORTED_MODULE_6__/* .transformData */ .J)(options, this.formattingSettings.dataPointCard.defaultColor.value.value);
+        this.formattingSettings.populateColorSelector(this.data.items);
         const width = options.viewport.width;
         const height = options.viewport.height;
         this.dim = [options.viewport.width, options.viewport.height];
@@ -36652,9 +36690,9 @@ class Visual {
             .domain([this.data.minValue, this.data.maxValue])
             .range([this.dim[1] - 10, 0 + 10]); // 10 is radius value
         this.drawTarget();
-        this.drawTargetLabel(settings);
+        this.drawTargetLabel();
         this.drawConnectors();
-        this.drawDataPoints(settings.circleWidth.value);
+        this.drawDataPoints();
         this.drawCategoryLabels();
     }
     drawTarget() {
@@ -36670,8 +36708,7 @@ class Visual {
         targetLine.attr("x1", 0).attr("y1", this.scaleY(this.data.target)).attr("x2", this.scaleX.range()[1]).attr("y2", this.scaleY(this.data.target));
         targetLine.exit().remove();
     }
-    drawTargetLabel(fontSize) {
-        console.log(fontSize);
+    drawTargetLabel() {
         let targetLabel = this.svg.selectAll("text.target-label").data([this.data.target]);
         targetLabel
             .enter()
@@ -36679,7 +36716,7 @@ class Visual {
             .classed("target-label", true)
             .attr("x", this.scaleX.range()[1] + 12 / 2) // 12 is fontsize
             .attr("y", this.scaleY(this.data.target))
-            .attr("font-size", `${fontSize}px`)
+            .attr("font-size", `${12}px`)
             .attr("font-family", "sans-serif")
             .text(this.formatMeasure(this.data.target, this.data.formatString));
         targetLabel
@@ -36689,21 +36726,39 @@ class Visual {
             .attr("font-family", "sans-serif")
             .text(this.formatMeasure(this.data.target, this.data.formatString));
     }
-    drawDataPoints(radiusWidth) {
+    drawDataPoints() {
         const dataPoints = this.svg.selectAll("circle.data-point").data(this.data.items);
         dataPoints
             .enter()
             .append("circle")
             .classed("data-point", true)
             .attr("cx", (d) => {
+            console.log(d.color);
             return this.scaleX(d.category);
         })
             .attr("cy", (d) => this.scaleY(d.value))
-            .attr("r", 10);
+            .attr("r", 10)
+            .style("fill", (d) => d.color)
+            .on("mouseover.tooltip", (e) => {
+            console.log(event); // Log the D3 event object
+            const d = (0,d3_selection__WEBPACK_IMPORTED_MODULE_4__/* ["default"] */ .Z)(e.target).data()[0];
+            this.host.tooltipService.show({
+                coordinates: [e.clientX, e.clientY],
+                identities: [],
+                isTouchEvent: false,
+                dataItems: [
+                    {
+                        displayName: d.category,
+                        value: this.formatMeasure(d.value, this.data.formatString),
+                    },
+                ],
+            });
+        });
         dataPoints
             .attr("cx", (d) => this.scaleX(d.category))
             .attr("cy", (d) => this.scaleY(d.value))
-            .attr("r", radiusWidth);
+            .attr("r", 10)
+            .style("fill", (d) => d.color);
         dataPoints.exit().remove();
     }
     drawConnectors() {

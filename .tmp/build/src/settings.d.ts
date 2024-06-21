@@ -2,6 +2,7 @@ import { formattingSettings } from "powerbi-visuals-utils-formattingmodel";
 import FormattingSettingsCard = formattingSettings.Card;
 import FormattingSettingsSlice = formattingSettings.Slice;
 import FormattingSettingsModel = formattingSettings.Model;
+import { VDataTtem } from "./interface";
 /**
  * Data Point Formatting Card
  */
@@ -20,5 +21,6 @@ declare class DataPointCardSettings extends FormattingSettingsCard {
 export declare class VisualFormattingSettingsModel extends FormattingSettingsModel {
     dataPointCard: DataPointCardSettings;
     cards: DataPointCardSettings[];
+    populateColorSelector(dataPoints: VDataTtem[]): void;
 }
 export {};

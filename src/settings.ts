@@ -31,7 +31,8 @@ import { formattingSettings } from "powerbi-visuals-utils-formattingmodel";
 import FormattingSettingsCard = formattingSettings.Card;
 import FormattingSettingsSlice = formattingSettings.Slice;
 import FormattingSettingsModel = formattingSettings.Model;
-
+import { VDataTtem } from "./interface";
+import { dataViewWildcard } from "powerbi-visuals-utils-dataviewutils";
 /**
  * Data Point Formatting Card
  */
@@ -68,4 +69,20 @@ export class VisualFormattingSettingsModel extends FormattingSettingsModel {
   dataPointCard = new DataPointCardSettings();
 
   cards = [this.dataPointCard];
+
+  populateColorSelector(dataPoints: VDataTtem[]) {
+    let slices = this.dataPointCard.slices;
+    if (dataPoints) {
+      slices.push(
+        new formattingSettings.ColorPicker({
+          name: "dataPointColor",
+          displayName: "Datapoint color",
+          value: { value: `${dataPoints.forEach((data) => data.color)}` },
+          selector: dataViewWildcard.createDataViewWildcardSelector(dataViewWildcard.DataViewWildcardMatchingOption.InstancesAndTotals),
+          // altConstantSelector: selection.getSelector(),
+          instanceKind: powerbi.VisualEnumerationInstanceKinds.ConstantOrRule,
+        })
+      );
+    }
+  }
 }
