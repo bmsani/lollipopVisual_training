@@ -1,0 +1,82 @@
+{
+  "dataRoles": [
+    {
+      "displayName": "Category Data",
+      "name": "category",
+      "kind": "Grouping"
+    },
+    {
+      "displayName": "Values",
+      "name": "values",
+      "kind": "Measure"
+    },
+    {
+      "displayName": "Target",
+      "name": "target",
+      "kind": "Measure"
+    }
+  ],
+  "objects": {
+    "dataPoint": {
+      "properties": {
+        "defaultColor": {
+          "type": {
+            "fill": {
+              "solid": {
+                "color": true
+              }
+            }
+          }
+        },
+        "fontSize": {
+          "type": {
+            "formatting": {
+              "fontSize": true
+            }
+          }
+        },
+        "circleWidth": {
+          "type": {
+            "numeric": true
+          }
+        }
+      }
+    }
+  },
+  "dataViewMappings": [
+    {
+      "categorical": {
+        "categories": {
+          "for": {
+            "in": "category"
+          },
+          "dataReductionAlgorithm": {
+            "top": {}
+          }
+        },
+        "values": {
+          "select": [
+            {
+              "bind": {
+                "to": "values"
+              }
+            },
+            {
+              "bind": {
+                "to": "target"
+              }
+            }
+          ]
+        }
+      },
+      "conditions": [
+        {
+          "category": { "max": 1 },
+          "values": { "max": 1 },
+          "target": { "max": 1 }
+        }
+      ]
+    }
+  ],
+  "privileges": []
+}
